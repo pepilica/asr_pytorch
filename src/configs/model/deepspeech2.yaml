@@ -11,7 +11,7 @@ encoder_hidden_stride: [2, 2]
 encoder_output_stride: [2, 1]
 encoder_hidden_channels: 32
 encoder_output_channels: 96
-decoder_num_rnn_layers: 1
+decoder_num_rnn_layers: 6
 decoder_hidden_size: 512
 decoder_dropout_rate: 0.2
 decoder_rnn_type: gru
