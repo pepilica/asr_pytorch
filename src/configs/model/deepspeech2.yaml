@@ -1,0 +1,18 @@
+_target_: src.model.DeepSpeech2Model
+encoder_hidden_conv_num: 1
+encoder_input_kernel: [41, 11]
+encoder_hidden_kernel: [21, 11]
+encoder_output_kernel: [21, 11]
+encoder_input_padding: [20, 5]
+encoder_hidden_padding: [10, 5]
+encoder_output_padding: [10, 5]
+encoder_input_stride: [2, 2]
+encoder_hidden_stride: [2, 2]
+encoder_output_stride: [2, 1]
+encoder_hidden_channels: 32
+encoder_output_channels: 96
+decoder_num_rnn_layers: 1
+decoder_hidden_size: 512
+decoder_dropout_rate: 0.2
+decoder_rnn_type: gru
+encoder_n_feats: 128
