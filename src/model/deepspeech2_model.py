@@ -143,17 +143,21 @@ class Decoder(nn.Module):
             rnn_type_class = nn.LSTM
         else:
             rnn_type_class = nn.RNN
-        self.layers = nn.Sequential(
-            RNNBlock(input_size, hidden_size, dropout_rate, rnn_type_class),
-            *[
-                RNNBlock(hidden_size, hidden_size, dropout_rate, rnn_type_class)
-                for _ in range(num_rnn_layers)
+        self.layers = nn.ModuleList(
+            [
+                RNNBlock(input_size, hidden_size, dropout_rate, rnn_type_class),
+                *[
+                    RNNBlock(hidden_size, hidden_size, dropout_rate, rnn_type_class)
+                    for _ in range(num_rnn_layers)
+                ],
             ]
         )
 
     def forward(self, x):
         h = None
-        return self.layers(x, h)
+        for layer in self.layers:
+            x, h = layer(x, h)
+        return x
 
 
 class DeepSpeech2Model(nn.Module):
