@@ -22,7 +22,7 @@ class RNNBlock(nn.Module):
             bidirectional=True,
         )
         self.hidden_size = hidden_size
-        self.bn = nn.LayerNorm([hidden_size])
+        self.ln = nn.LayerNorm([hidden_size])
 
     def forward(self, x, h=None):
         x_bidirectional_embed, h_next = self.rnn(x, h)
@@ -30,7 +30,7 @@ class RNNBlock(nn.Module):
             x_bidirectional_embed[:, :, : self.hidden_size]
             + x_bidirectional_embed[:, :, self.hidden_size :]
         )
-        x_normed = self.bn(x_embed)
+        x_normed = self.ln(x_embed)
         return x_normed, h_next
 
 
@@ -143,19 +143,17 @@ class Decoder(nn.Module):
             rnn_type_class = nn.LSTM
         else:
             rnn_type_class = nn.RNN
-        self.layers = [
+        self.layers = nn.Sequential(
             RNNBlock(input_size, hidden_size, dropout_rate, rnn_type_class),
             *[
                 RNNBlock(hidden_size, hidden_size, dropout_rate, rnn_type_class)
                 for _ in range(num_rnn_layers)
-            ],
-        ]
+            ]
+        )
 
     def forward(self, x):
         h = None
-        for layer in self.layers:
-            x, h = layer(x, h)
-        return x
+        return self.layers(x, h)
 
 
 class DeepSpeech2Model(nn.Module):
