@@ -20,6 +20,7 @@ class WandBWriter:
         run_id=None,
         run_name=None,
         mode="online",
+        api_key=None,
         **kwargs,
     ):
         """
@@ -39,8 +40,10 @@ class WandBWriter:
         """
         try:
             import wandb
-
-            wandb.login()
+            if api_key:
+                wandb.login(key=api_key)
+            else:
+                wandb.login()
 
             self.run_id = run_id
 
