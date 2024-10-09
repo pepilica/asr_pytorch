@@ -1,7 +1,9 @@
 import re
+from collections import defaultdict
 from string import ascii_lowercase
 
 import torch
+from torchaudio.models.decoder._ctc_decoder import ctc_decoder
 
 # TODO add BPE, LM, Beam Search support
 # Note: think about metrics and encoder
@@ -10,21 +12,41 @@ import torch
 
 
 class CTCTextEncoder:
-    EMPTY_TOK = ""
+    EMPTY_TOK = "^"
 
-    def __init__(self, alphabet=None, **kwargs):
+    def __init__(
+        self,
+        alphabet=None,
+        use_torchaudio_ctc=False,
+        top_k_beams=10,
+        use_lm=False,
+        lm_path=None,
+        **kwargs,
+    ):
         """
         Args:
             alphabet (list): alphabet for language. If None, it will be
                 set to ascii
         """
 
+        assert (lm_path is None) != use_lm, ""
+
         if alphabet is None:
             alphabet = list(ascii_lowercase + " ")
 
         self.alphabet = alphabet
         self.vocab = [self.EMPTY_TOK] + list(self.alphabet)
-
+        self.use_torchaudio_ctc = use_torchaudio_ctc
+        if self.use_torchaudio_ctc:
+            CTCTextEncoder.decoder = ctc_decoder(
+                lexicon=None,
+                tokens=self.vocab,
+                lm=lm_path,
+                beam_size=top_k_beams,
+                blank_token=self.EMPTY_TOK,
+                sil_token=self.EMPTY_TOK,
+            )
+        self.top_k_beams = top_k_beams
         self.ind2char = dict(enumerate(self.vocab))
         self.char2ind = {v: k for k, v in self.ind2char.items()}
 
@@ -66,6 +88,48 @@ class CTCTextEncoder:
             if raw_string[i] != raw_string[i - 1]:
                 total_string.append(raw_string[i])
         return "".join(total_string)
+
+    def beam_search_ctc_decode(self, log_probs, log_probs_length) -> str:
+        if self.use_torchaudio_ctc:
+            beam_search_result = CTCTextEncoder.decoder(log_probs, log_probs_length)
+            hypos = [i.tokens for i in beam_search_result[0]]
+        else:
+            hypos = self.__beam_search_ctc_decode(
+                log_probs, log_probs_length, self.top_k_beams
+            )
+        return hypos
+
+    def __beam_search_ctc_decode(
+        self, log_probs_batch, log_probs_length_batch, top_k_beams
+    ) -> list[str]:
+        if isinstance(log_probs_batch, torch.Tensor):
+            log_probs_batch = log_probs_batch.detach().cpu().numpy()
+        hypos = []
+        for log_probs_non_normed, log_probs_length in zip(
+            log_probs_batch, log_probs_length_batch
+        ):
+            log_probs = log_probs_non_normed[: int(log_probs_length)]
+            dp = {
+                (tuple(), self.EMPTY_TOK): 1.0,
+            }
+            for prob in log_probs:
+                new_dp = defaultdict(float)
+                for ind, next_token_prob in enumerate(prob):
+                    cur_char = self.ind2char[ind]
+                    for (prefix, last_char), v in dp.items():
+                        if last_char == cur_char:
+                            new_prefix = prefix
+                        else:
+                            if cur_char != self.EMPTY_TOK:
+                                new_prefix = prefix + (ind,)
+                            else:
+                                new_prefix = prefix
+                        new_dp[(new_prefix, cur_char)] += v * next_token_prob
+                dp = dict(
+                    sorted(list(new_dp.items()), key=lambda x: -x[1])[:top_k_beams]
+                )
+            hypos.append(max(dp.items(), key=lambda x: x[1])[0][0])
+        return hypos
 
     @staticmethod
     def normalize_text(text: str):
