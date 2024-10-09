@@ -12,7 +12,7 @@ from torchaudio.models.decoder._ctc_decoder import ctc_decoder
 
 
 class CTCTextEncoder:
-    EMPTY_TOK = "^"
+    EMPTY_TOK = ""
 
     def __init__(
         self,
