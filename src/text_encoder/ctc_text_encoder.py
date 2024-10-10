@@ -2,6 +2,7 @@ import re
 from collections import defaultdict
 from string import ascii_lowercase
 
+import numpy as np
 import torch
 from torchaudio.models.decoder._ctc_decoder import ctc_decoder
 
@@ -105,6 +106,7 @@ class CTCTextEncoder:
         if isinstance(log_probs_batch, torch.Tensor):
             log_probs_batch = log_probs_batch.detach().cpu().numpy()
         hypos = []
+        log_probs_batch = np.exp(log_probs_batch)
         for log_probs_non_normed, log_probs_length in zip(
             log_probs_batch, log_probs_length_batch
         ):
