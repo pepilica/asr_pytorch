@@ -20,7 +20,8 @@ loss_function:
   _target_: src.loss.CTCLossWrapper
 text_encoder:
   _target_: src.text_encoder.CTCTextEncoder
-  use_torchaudio_ctc: False
+  use_torchaudio_ctc: True
+  lm_path: /kaggle/input/ngram-asr-librispeech/3-gram.pruned.1e-7.arpa
 trainer:
   log_step: 25
   n_epochs: 20

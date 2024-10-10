@@ -20,7 +20,6 @@ class CTCTextEncoder:
         alphabet=None,
         use_torchaudio_ctc=False,
         top_k_beams=10,
-        use_lm=False,
         lm_path=None,
         **kwargs,
     ):
@@ -29,8 +28,6 @@ class CTCTextEncoder:
             alphabet (list): alphabet for language. If None, it will be
                 set to ascii
         """
-
-        assert (lm_path is None) != use_lm, ""
 
         if alphabet is None:
             alphabet = list(ascii_lowercase + " ")
