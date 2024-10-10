@@ -21,6 +21,7 @@ class CTCTextEncoder:
         use_torchaudio_ctc=False,
         top_k_beams=10,
         lm_path=None,
+        lm_weight=2,
         **kwargs,
     ):
         """
@@ -41,6 +42,7 @@ class CTCTextEncoder:
                 tokens=self.vocab,
                 lm=lm_path,
                 beam_size=top_k_beams,
+                lm_weight=lm_weight,
                 blank_token=self.EMPTY_TOK,
                 sil_token=self.EMPTY_TOK,
             )
