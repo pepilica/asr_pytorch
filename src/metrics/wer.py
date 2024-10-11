@@ -43,6 +43,6 @@ class BeamSearchWERMetric(BaseMetric):
         )
         for log_prob_vec, target_text in zip(predictions, text):
             target_text = self.text_encoder.normalize_text(target_text)
-            pred_text = self.text_encoder.ctc_decode(log_prob_vec)
+            pred_text = self.text_encoder.decode(log_prob_vec)
             wers.append(calc_wer(target_text, pred_text))
         return sum(wers) / len(wers)

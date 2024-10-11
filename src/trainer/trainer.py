@@ -115,7 +115,7 @@ class Trainer(BaseTrainer):
         beam_inds = self.text_encoder.beam_search_ctc_decode(
             log_probs.cpu(), log_probs_length.cpu()
         )
-        beam_texts = [self.text_encoder.ctc_decode(inds) for inds in beam_inds]
+        beam_texts = [self.text_encoder.decode(inds) for inds in beam_inds]
 
         tuples = list(zip(argmax_texts, beam_texts, text, argmax_texts_raw, audio_path))
 

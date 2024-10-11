@@ -26,8 +26,7 @@ class RNNBlock(nn.Module):
 
     def forward(self, x, x_len, h=None):
         x_normed = self.ln(x)
-        x_relu_normed = F.relu(x_normed)
-        x_packed = nn.utils.rnn.pack_padded_sequence(x_relu_normed, x_len)
+        x_packed = nn.utils.rnn.pack_padded_sequence(x_normed, x_len)
         x_bidirectional_embed, h_next = self.rnn(x_packed, h)
         x_bidirectional_embed, _ = nn.utils.rnn.pad_packed_sequence(
             x_bidirectional_embed
