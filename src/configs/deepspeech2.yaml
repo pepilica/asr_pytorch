@@ -23,6 +23,7 @@ text_encoder:
   use_torchaudio_ctc: True
   lm_path: /kaggle/input/ngram-asr-librispeech/3-gram.pruned.1e-7.arpa
   lm_weight: 0.5
+  top_k_beams: 100
 trainer:
   log_step: 25
   n_epochs: 30
