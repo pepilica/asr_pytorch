@@ -22,20 +22,16 @@ class RNNBlock(nn.Module):
             bidirectional=True,
         )
         self.hidden_size = hidden_size
-        self.ln = nn.LayerNorm([input_size])
+        self.ln = nn.LayerNorm([hidden_size])
 
-    def forward(self, x, x_len, h=None):
-        x_normed = self.ln(x)
-        x_packed = nn.utils.rnn.pack_padded_sequence(x_normed, x_len)
-        x_bidirectional_embed, h_next = self.rnn(x_packed, h)
-        x_bidirectional_embed, _ = nn.utils.rnn.pad_packed_sequence(
-            x_bidirectional_embed
-        )
+    def forward(self, x, h=None):
+        x_bidirectional_embed, h_next = self.rnn(x, h)
         x_embed = (
             x_bidirectional_embed[:, :, : self.hidden_size]
             + x_bidirectional_embed[:, :, self.hidden_size :]
         )
-        return x_embed, h_next
+        x_normed = self.ln(x_embed)
+        return x_normed, h_next
 
 
 class Encoder(nn.Module):
@@ -157,10 +153,10 @@ class Decoder(nn.Module):
             ]
         )
 
-    def forward(self, x, x_len):
+    def forward(self, x):
         h = None
         for layer in self.layers:
-            x, h = layer(x, x_len, h)
+            x, h = layer(x, h)
         return x
 
 
@@ -214,8 +210,7 @@ class DeepSpeech2Model(nn.Module):
     def forward(self, spectrogram, spectrogram_length, **batch):
         x_encoder_embed = self.encoder(spectrogram.unsqueeze(1))
         x_encoder_embed = x_encoder_embed.permute((2, 0, 1)).contiguous()
-        decoder_lengths = self.transform_input_lengths(spectrogram_length)
-        x_decoder_embed = self.decoder(x_encoder_embed, decoder_lengths)
+        x_decoder_embed = self.decoder(x_encoder_embed)
         log_probs = F.log_softmax(self.fc(x_decoder_embed).transpose(0, 1), dim=-1)
         return {
             "log_probs": log_probs,

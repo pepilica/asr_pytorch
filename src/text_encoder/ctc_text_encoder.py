@@ -6,6 +6,8 @@ import numpy as np
 import torch
 from torchaudio.models.decoder._ctc_decoder import ctc_decoder
 
+from src.transforms.wav_augs import Gain
+
 # TODO add BPE, LM, Beam Search support
 # Note: think about metrics and encoder
 # The design can be remarkably improved
