@@ -3,29 +3,31 @@ train:
     _target_: torchaudio.transforms.MelSpectrogram
     sample_rate: 16000
   audio: # name of the tensor on which we apply transform
-    _target_: torchvision.transforms.RandomApply
+    _target_: torchvision.transforms.Compose
     transforms:
-      _target_: torch.nn.ModuleList
-      modules:
-        - _target_: src.transforms.wav_augs.BandPass
-          sample_rate: 16000
-          min_center_frequency: 1500
-          max_center_frequency: 2500
-        - _target_: src.transforms.wav_augs.BandStop
-          sample_rate: 16000
-          min_center_frequency: 1500
-          max_center_frequency: 2500
-        - _target_: src.transforms.wav_augs.ColoredNoise
-          sample_rate: 16000
-          min_snr_in_db: 10.0
-          max_snr_in_db: 20.0
-        - _target_: src.transforms.wav_augs.Gain
-          min_gain_in_db: -10.0
-        - _target_: src.transforms.wav_augs.PeakNormalize
-          sample_rate: 16000
-        - _target_: src.transforms.wav_augs.Shift
-          sample_rate: 16000
-  p: 0.1
+      - _target_: src.transforms.wav_augs.BandPass
+        sample_rate: 16000
+        min_center_frequency: 1500
+        max_center_frequency: 2500
+        p: 0.3
+      - _target_: src.transforms.wav_augs.BandStop
+        sample_rate: 16000
+        min_center_frequency: 1500
+        max_center_frequency: 2500
+        p: 0.3
+      - _target_: src.transforms.wav_augs.ColoredNoise
+        sample_rate: 16000
+        min_snr_in_db: 10.0
+        max_snr_in_db: 20.0
+      - _target_: src.transforms.wav_augs.Gain
+        min_gain_in_db: -10.0
+        p: 0.3
+      - _target_: src.transforms.wav_augs.PeakNormalize
+        sample_rate: 16000
+        p: 0.3
+      - _target_: src.transforms.wav_augs.Shift
+        sample_rate: 16000
+        p: 0.3
 inference:
   get_spectrogram:
     _target_: torchaudio.transforms.MelSpectrogram

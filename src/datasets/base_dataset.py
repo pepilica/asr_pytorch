@@ -141,14 +141,22 @@ class BaseDataset(Dataset):
                 (a single dataset element) (possibly transformed via
                 instance transform).
         """
-        if self.instance_transforms is not None:
-            for transform_name in self.instance_transforms.keys():
-                if transform_name == "get_spectrogram":
-                    continue  # skip special key
-                instance_data[transform_name] = self.instance_transforms[
-                    transform_name
-                ](instance_data[transform_name])
-        return instance_data
+        try:
+            if self.instance_transforms is not None:
+                for transform_name in self.instance_transforms.keys():
+                    if transform_name == "get_spectrogram":
+                        continue  # skip special key
+                    instance_data[transform_name] = self.instance_transforms[
+                        transform_name
+                    ](instance_data[transform_name])
+            return instance_data
+        except RuntimeError:
+            print("!!!")
+            print(
+                transform_name,
+                instance_data[transform_name].shape,
+                self.instance_transforms[transform_name],
+            )
 
     @staticmethod
     def _filter_records_from_dataset(
