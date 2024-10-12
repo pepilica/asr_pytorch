@@ -4,7 +4,7 @@ defaults:
   - metrics: example
   - datasets: deepspeech2_finetune
   - dataloader: example
-  - transforms: train_with_augs
+  - transforms: example
   - _self_
 optimizer:
   _target_: torch.optim.AdamW
