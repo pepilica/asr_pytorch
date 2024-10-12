@@ -1,5 +1,5 @@
 defaults:
-  - instance_transforms: train_augs
+  - instance_transforms: example
   - _self_
 
 batch_transforms:
