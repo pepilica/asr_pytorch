@@ -1,4 +1,7 @@
 defaults:
-  - batch_transforms: example
   - instance_transforms: train_augs
   - _self_
+
+batch_transforms:
+  train: null
+  inference: null
