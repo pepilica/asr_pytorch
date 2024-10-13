@@ -7,6 +7,10 @@ defaults:
   - _self_
 text_encoder:
   _target_: src.text_encoder.CTCTextEncoder
+  use_torchaudio_ctc: True
+  lm_path: /kaggle/input/ngram-asr-librispeech/3-gram.pruned.1e-7.arpa
+  lm_weight: 0.5
+  top_k_beams: 512
 inferencer:
   device_tensors: ["spectrogram", "text_encoded"] # which tensors should be on device (ex. GPU)
   device: auto # device name or "auto"
