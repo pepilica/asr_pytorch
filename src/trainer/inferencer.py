@@ -1,8 +1,11 @@
+from pathlib import Path
+
 import torch
 from tqdm.auto import tqdm
 
 from src.metrics.tracker import MetricTracker
 from src.trainer.base_trainer import BaseTrainer
+from src.utils.io_utils import write_json
 
 
 class Inferencer(BaseTrainer):
@@ -87,6 +90,7 @@ class Inferencer(BaseTrainer):
             # init model
             self._from_pretrained(config.inferencer.get("from_pretrained"))
         self.calculate_metrics = calculate_metrics
+        self.cur_id = 0
 
     def run_inference(self):
         """
@@ -141,27 +145,33 @@ class Inferencer(BaseTrainer):
         # Some saving logic. This is an example
         # Use if you need to save predictions on disk
 
-        batch_size = batch["logits"].shape[0]
-        current_id = batch_idx * batch_size
+        batch_size = batch["log_probs"].shape[0]
 
         for i in range(batch_size):
             # clone because of
             # https://github.com/pytorch/pytorch/issues/1995
-            logits = batch["logits"][i].clone()
-            label = batch["labels"][i].clone()
-            pred_label = logits.argmax(dim=-1)
+            log_probs = [batch["log_probs"][i].clone()]
+            length = [batch["log_probs_length"][i].clone()]
+            text = batch["text"][i]
+            path = batch["audio_path"][i]
+            pred_tokens = self.text_encoder.beam_search_ctc_decode(log_probs, length)
+            pred_text = self.text_encoder.decode(pred_tokens[0])
 
-            output_id = current_id + i
-
-            output = {
-                "pred_label": pred_label,
-                "label": label,
-            }
-
+            if self.calculate_metrics:
+                output = {
+                    "pred_text": pred_text,
+                    "text": text,
+                }
+            else:
+                output = {
+                    "pred_text": pred_text,
+                }
             if self.save_path is not None:
                 # you can use safetensors or other lib here
-                torch.save(output, self.save_path / part / f"output_{output_id}.pth")
-
+                write_json(
+                    output, self.save_path / f"output_{str(Path(path).stem)}.json"
+                )
+        self.cur_id += batch_size
         return batch
 
     def _inference_part(self, part, dataloader):
@@ -174,7 +184,8 @@ class Inferencer(BaseTrainer):
         Returns:
             logs (dict): metrics, calculated on the partition.
         """
-
+        if not self.calculate_metrics:
+            return None
         self.is_train = False
         self.model.eval()
 
