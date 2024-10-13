@@ -96,6 +96,7 @@ class Trainer(BaseTrainer):
         log_probs,
         log_probs_length,
         audio_path,
+        audio,
         examples_to_log=10,
         use_torchaudio_ctc=False,
         **batch
@@ -117,10 +118,12 @@ class Trainer(BaseTrainer):
         )
         beam_texts = [self.text_encoder.decode(inds) for inds in beam_inds]
 
-        tuples = list(zip(argmax_texts, beam_texts, text, argmax_texts_raw, audio_path))
+        tuples = list(
+            zip(argmax_texts, beam_texts, text, argmax_texts_raw, audio_path, audio)
+        )
 
         rows = {}
-        for argmax_pred, beam_pred, target, raw_pred, audio_path in tuples[
+        for argmax_pred, beam_pred, target, raw_pred, audio_path, audio in tuples[
             :examples_to_log
         ]:
             target = self.text_encoder.normalize_text(target)
@@ -129,7 +132,12 @@ class Trainer(BaseTrainer):
             beam_wer = calc_wer(target, beam_pred) * 100
             beam_cer = calc_cer(target, beam_pred) * 100
 
+            if isinstance(audio, torch.Tensor):
+                audio = audio.cpu().numpy()
             rows[Path(audio_path).name] = {
+                "audio": self.writer.wandb.Audio(
+                    audio.reshape((-1,)), sample_rate=16000
+                ),
                 "target": target,
                 "raw prediction": raw_pred,
                 "argmax predictions": argmax_pred,

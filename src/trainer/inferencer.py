@@ -25,6 +25,7 @@ class Inferencer(BaseTrainer):
         metrics=None,
         batch_transforms=None,
         skip_model_load=False,
+        calculate_metrics=True,
     ):
         """
         Initialize the Inferencer.
@@ -48,6 +49,8 @@ class Inferencer(BaseTrainer):
                 pre-trained checkpoint path. Set this argument to True if
                 the model desirable weights are defined outside of the
                 Inferencer Class.
+            calculate_metrics (bool): if False, only map voices to text,
+                calculate metrcs otherwise.
         """
         assert (
             skip_model_load or config.inferencer.get("from_pretrained") is not None
@@ -83,6 +86,7 @@ class Inferencer(BaseTrainer):
         if not skip_model_load:
             # init model
             self._from_pretrained(config.inferencer.get("from_pretrained"))
+        self.calculate_metrics = calculate_metrics
 
     def run_inference(self):
         """
