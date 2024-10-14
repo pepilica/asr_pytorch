@@ -18,3 +18,4 @@ wget
 flashlight-text
 editdistance
 datasets
+gdown

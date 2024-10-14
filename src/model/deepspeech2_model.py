@@ -11,7 +11,7 @@ class RNNBlock(nn.Module):
         input_size: int,
         hidden_size: int,
         dropout_rate: float,
-        rnn_type: nn.GRU | nn.LSTM | nn.RNN,
+        rnn_type: nn.Module,
     ) -> None:
         super().__init__()
         self.rnn = rnn_type(

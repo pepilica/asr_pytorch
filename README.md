@@ -10,9 +10,7 @@
 
 ## About
 
-This repository contains a template for solving ASR task with PyTorch. This template branch is a part of the [HSE DLA course](https://github.com/markovka17/dla) ASR homework. Some parts of the code are missing (or do not follow the most optimal design choices...) and students are required to fill these parts themselves (as well as writing their own models, etc.).
-
-See the task assignment [here](https://github.com/markovka17/dla/tree/2024/hw1_asr).
+This repository contains an ASR pipeline using PyTorch and DeepSpeech2 as main model.
 
 ## Installation
 
@@ -54,20 +52,102 @@ Follow these steps to install the project:
    pre-commit install
    ```
 
-## How To Use
+## Training
 
-To train a model, run the following command:
+The model was trained in 4 steps. To reproduce, train model using the following commands:
 
-```bash
-python3 train.py -cn=CONFIG_NAME HYDRA_CONFIG_ARGUMENTS
-```
+1. Train 30 epochs without augmentations on clean-100 dataset
 
-Where `CONFIG_NAME` is a config from `src/configs` and `HYDRA_CONFIG_ARGUMENTS` are optional arguments.
+   ```bash
+   python train.py -cn=deepspeech2_pretrain
+   ```
 
-To run inference (evaluate the model or save predictions):
+2. Train 50 epochs wigh augmentations on other-500 dataset
 
-```bash
-python3 inference.py HYDRA_CONFIG_ARGUMENTS
+   ```bash
+   python train.py -cn=deepspeech2_finetune_other
+   ```
+
+3. Train 20 epochs wigh augmentations on clean-360 dataset
+
+   ```bash
+   python train.py -cn=deepspeech2_finetune_clean_2
+   ```
+
+4. Train 100k steps (or until Kaggle won't shut your process) wigh augmentations on clean-360 dataset
+
+   ```bash
+   python train.py -cn=deepspeech2_finetune_clean_3
+   ```
+
+### Inference
+
+   1. If you want only to decode audio to text, your directory with audio should has the following format:
+      ```
+      NameOfTheDirectoryWithUtterances
+      └── audio
+         ├── UtteranceID1.wav # may be flac or mp3
+         ├── UtteranceID2.wav
+         .
+         .
+         .
+         └── UtteranceIDn.wav
+      ```
+      Run the following command:
+      ```bash
+      python inference.py datasets=inference_custom inferencer.save_path=SAVE_PATH datasets.test.audio_dir=TEST_DATA/audio
+      ```
+      where `SAVE_PATH` is a path to save predicted text and `TEST_DATA` is directory with audio.
+   2. If you have ground truth text and want to evaluate model, make sure that directory with audio and ground truth text has the following format:
+      ```
+      NameOfTheDirectoryWithUtterances
+      ├── audio
+      │   ├── UtteranceID1.wav # may be flac or mp3
+      │   ├── UtteranceID2.wav
+      │   .
+      │   .
+      │   .
+      │   └── UtteranceIDn.wav
+      └── transcriptions
+         ├── UtteranceID1.txt
+         ├── UtteranceID2.txt
+         .
+         .
+         .
+         └── UtteranceIDn.txt
+      ```
+      Then run the following command:
+      ```bash
+      python inference.py datasets=inference_custom inferencer.save_path=SAVE_PATH datasets.test.audio_dir=TEST_DATA/audio datasets.test.transcription_dir=TEST_DATA/transcriptions
+      ```
+   3. If you only have predicted and ground truth texts and only want to evaluate model, make sure that directory with ones has the following format:
+      ```
+      NameOfTheDirectoryWithUtterances
+      ├── ID1.json # may be flac or mp3
+      .
+      .
+      .
+      └── IDn.json
+
+      ID1 = {"pred_text": "ye are newcomers", "text": "YE ARE NEWCOMERS"}
+      ```
+      Then run the following command:
+      ```bash
+      python calculate_wer_cer.py --dir_path=DIR
+      ```
+   4. Finally, if you want to reproduce results, run the following code:
+      ```bash
+      python inference.py
+      ```
+      Feel free to choose what kind of metrics you want to evaluate (see [this config](src/configs/metrics/inference.yaml)).
+
+## Results
+
+This results were obtained using beam search w/ langauge model:
+
+```angular2html
+                WER     CER
+test-clean     28.12     8.6
 ```
 
 ## Credits

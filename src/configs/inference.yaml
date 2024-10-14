@@ -8,13 +8,13 @@ defaults:
 text_encoder:
   _target_: src.text_encoder.CTCTextEncoder
   use_torchaudio_ctc: True
-  lm_path: /kaggle/input/ngram-asr-librispeech/3-gram.pruned.1e-7.arpa
+  lm_path: saved/4-gram.arpa
   lm_weight: 0.5
-  top_k_beams: 128
+  top_k_beams: 512
 inferencer:
   device_tensors: ["spectrogram", "text_encoded"] # which tensors should be on device (ex. GPU)
   device: auto # device name or "auto"
   override: True
   save_path: "example" # any name here, can be a dataset name
   seed: 1
-  from_pretrained: "saved/model_best_finetune.pth" # path to the pretrained model
+  from_pretrained: "saved/model_best.pth" # path to the pretrained model
