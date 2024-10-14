@@ -1,5 +1,7 @@
+from random import random
+
 import torchaudio.transforms
-from torch import Tensor, nn, rand
+from torch import Tensor, nn
 
 
 class TimeMasking(nn.Module):
@@ -9,6 +11,6 @@ class TimeMasking(nn.Module):
         self.p = p
 
     def __call__(self, data: Tensor):
-        if rand() < self.p:
+        if random() < self.p:
             return self._aug(data)
         return data
