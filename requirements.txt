@@ -17,3 +17,4 @@ pre-commit
 wget
 flashlight-text
 editdistance
+datasets

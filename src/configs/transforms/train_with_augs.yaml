@@ -1,8 +1,4 @@
 defaults:
-  - instance_transforms: train_augs
+  - instance_transforms: train_augs_2
+  - batch_transforms: train_augs
   - _self_
-
-# these lines are required if you do not use batch transforms
-batch_transforms:
-  train: null
-  inference: null
