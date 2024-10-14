@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 @hydra.main(
     version_base=None,
     config_path="src/configs",
-    config_name="deepspeech2_finetune_other",
+    config_name="deepspeech2_finetune_clean_2",
 )
 def main(config):
     """
